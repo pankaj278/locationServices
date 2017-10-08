@@ -4,8 +4,14 @@ package com.pankaj.getlocation.FusedLocationAPI;
  * Created by APPZLOGIC on 9/8/2017.
  */
 
+import android.Manifest;
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.location.Location;
+import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -25,6 +31,9 @@ public class FusedLocationServices implements GoogleApiClient.ConnectionCallback
     private LocationResult locationResult;
     private GoogleApiClient googleApiClient;
     private static final int ON_CONNECTED = 1,ON_SUSPENDED = 2,ON_FAILED = 3;
+    public static final int PERMISSION_REQUEST_CODE =101;
+    private Activity activity;
+
 
     public FusedLocationServices(boolean oneTimeLocation, Context context, LocationResult locationResult) {
         this.oneTimeLocation = oneTimeLocation;
@@ -34,6 +43,7 @@ public class FusedLocationServices implements GoogleApiClient.ConnectionCallback
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API).build();
+        if (checkLocationPermission())
         googleApiClient.connect();
     }
 
@@ -69,6 +79,28 @@ public class FusedLocationServices implements GoogleApiClient.ConnectionCallback
             LocationServices.FusedLocationApi.removeLocationUpdates(googleApiClient, this);
         }else {
             locationResult.onLocationResult(location);
+        }
+    }
+
+    private Boolean checkLocationPermission(){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (context.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                    context.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED){
+                ((Activity)context).requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION,
+                        Manifest.permission.ACCESS_FINE_LOCATION},PERMISSION_REQUEST_CODE);
+                return false;
+            }else
+                return true;
+        }else
+            return true;
+    }
+
+    private void checkGPS(){
+        LocationManager manager = (LocationManager) context.getSystemService( Context.LOCATION_SERVICE );
+        if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            Intent intent = new Intent("android.location.GPS_ENABLED_CHANGE");
+            intent.putExtra("enabled", true);
+            context.sendBroadcast(intent);
         }
     }
 }
