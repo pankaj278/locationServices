@@ -94,13 +94,4 @@ public class FusedLocationServices implements GoogleApiClient.ConnectionCallback
         }else
             return true;
     }
-
-    private void checkGPS(){
-        LocationManager manager = (LocationManager) context.getSystemService( Context.LOCATION_SERVICE );
-        if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-            Intent intent = new Intent("android.location.GPS_ENABLED_CHANGE");
-            intent.putExtra("enabled", true);
-            context.sendBroadcast(intent);
-        }
-    }
 }
